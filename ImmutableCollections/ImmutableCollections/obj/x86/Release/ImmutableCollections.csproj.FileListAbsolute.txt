@@ -1,0 +1,4 @@
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\x86\Release\ImmutableCollections.exe
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\x86\Release\System.Collections.Immutable.dll
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\x86\Release\System.Collections.Immutable.xml
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\obj\x86\Release\ImmutableCollections.exe

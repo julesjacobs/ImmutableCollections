@@ -1,0 +1,7 @@
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\Release\ImmutableCollections.exe
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\Release\ImmutableCollections.pdb
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\Release\System.Collections.Immutable.dll
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\Release\System.Collections.Immutable.xml
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\obj\Release\ImmutableCollections.exe
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\obj\Release\ImmutableCollections.pdb
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\obj\Release\ImmutableCollections.csprojResolveAssemblyReference.cache

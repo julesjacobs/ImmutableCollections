@@ -1,0 +1,13 @@
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\x64\Release\ImmutableCollections.exe
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\x64\Release\ImmutableCollections.pdb
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\x64\Release\System.Collections.Immutable.dll
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\bin\x64\Release\System.Collections.Immutable.xml
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\obj\x64\Release\ImmutableCollections.exe
+c:\Users\bio-imaging\Documents\Visual Studio 2013\Projects\ImmutableCollections\ImmutableCollections\obj\x64\Release\ImmutableCollections.pdb
+C:\Users\bio-imaging\Documents\GitHub\ImmutableCollections\ImmutableCollections\ImmutableCollections\obj\x64\Release\ImmutableCollections.exe
+C:\Users\bio-imaging\Documents\GitHub\ImmutableCollections\ImmutableCollections\ImmutableCollections\obj\x64\Release\ImmutableCollections.pdb
+C:\Users\bio-imaging\Documents\GitHub\ImmutableCollections\ImmutableCollections\ImmutableCollections\bin\x64\Release\ImmutableCollections.exe
+C:\Users\bio-imaging\Documents\GitHub\ImmutableCollections\ImmutableCollections\ImmutableCollections\bin\x64\Release\ImmutableCollections.pdb
+C:\Users\bio-imaging\Documents\GitHub\ImmutableCollections\ImmutableCollections\ImmutableCollections\bin\x64\Release\System.Collections.Immutable.dll
+C:\Users\bio-imaging\Documents\GitHub\ImmutableCollections\ImmutableCollections\ImmutableCollections\bin\x64\Release\System.Collections.Immutable.xml
+C:\Users\bio-imaging\Documents\GitHub\ImmutableCollections\ImmutableCollections\ImmutableCollections\obj\x64\Release\ImmutableCollections.csprojResolveAssemblyReference.cache
