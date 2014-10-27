@@ -12,7 +12,7 @@ namespace ImmutableCollections
     {
         public static void Time(string name, Action f)
         {
-            f();
+            f(); // warmup: let the CLR genererate code for generics, get caches hot, etc.
             GC.GetTotalMemory(true);
             var watch = Stopwatch.StartNew();
             for (int i = 0; i < 10; i++)
@@ -36,8 +36,9 @@ namespace ImmutableCollections
     {
         static void Main()
         {
-            Stacks.Benchmarks.Run();
-            Queues.Benchmarks.Run();
+            //Stacks.Benchmarks.Run();
+            //Queues.Benchmarks.Run();
+            Vectors.Benchmarks.Run();
             Console.Read();
         }
     }

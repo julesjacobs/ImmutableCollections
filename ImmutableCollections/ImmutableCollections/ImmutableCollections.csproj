@@ -71,16 +71,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BufferedStack.cs" />
-    <Compile Include="LinkedListStack.cs" />
-    <Compile Include="NullLinkedListStack.cs" />
+    <Compile Include="Queues\Benchmarks.cs" />
+    <Compile Include="Stacks\Benchmarks.cs" />
+    <Compile Include="Stacks\BufferedStack.cs" />
+    <Compile Include="Stacks\LinkedListStack.cs" />
+    <Compile Include="Stacks\NullLinkedListStack.cs" />
     <Compile Include="MainClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="DoubleStackQueue.cs" />
-    <Compile Include="StackArrayQueue.cs" />
+    <Compile Include="Queues\DoubleStackQueue.cs" />
+    <Compile Include="Queues\StackArrayQueue.cs" />
+    <Compile Include="Vectors\Benchmarks.cs" />
+    <Compile Include="Vectors\FVec.cs" />
+    <Compile Include="Vectors\MergeVector.cs" />
+    <Compile Include="Vectors\FixedVector.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="HashMaps\" />
+    <Folder Include="SortedMaps\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
