@@ -12,6 +12,8 @@ namespace ImmutableCollections
     {
         public static void Time(string name, Action f)
         {
+            //if (name == "Collections.ImmutableList") return;
+            //if (name == "FixedVector") return;
             f(); // warmup: let the CLR genererate code for generics, get caches hot, etc.
             GC.GetTotalMemory(true);
             var watch = Stopwatch.StartNew();
@@ -39,6 +41,24 @@ namespace ImmutableCollections
             //Stacks.Benchmarks.Run();
             //Queues.Benchmarks.Run();
             Vectors.Benchmarks.Run();
+
+            
+            /*
+            var v = Vectors.ResizeVector<int>.Empty;
+
+            for (int i = 0; i < 100000; i++)
+            {
+                v = v.Add(i);
+            }
+
+            Console.WriteLine(v.Lookup(5000));
+
+            v = v.Set(5000, 42);
+
+            Console.WriteLine(v.Lookup(5000));
+            */
+
+
             Console.Read();
         }
     }

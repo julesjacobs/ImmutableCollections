@@ -84,6 +84,7 @@
     <Compile Include="Vectors\FVec.cs" />
     <Compile Include="Vectors\MergeVector.cs" />
     <Compile Include="Vectors\FixedVector.cs" />
+    <Compile Include="Vectors\ResizeVector.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

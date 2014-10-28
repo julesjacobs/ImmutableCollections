@@ -18,6 +18,7 @@ namespace ImmutableCollections.Vectors
             var fvec = new Fvec<int>();
             var mergeVec = MergeVector<int>.Empty;
             var fixedVec = new FixedVector<int>();
+            var resizeVec = ResizeVector<int>.Empty;
 
 
 
@@ -49,6 +50,11 @@ namespace ImmutableCollections.Vectors
                 for (int i = 0; i < size; i++) fixedVec = fixedVec.Add(i);
             });
 
+            Benchmark.Time("ResizeVector", () =>
+            {
+                resizeVec = ResizeVector<int>.Empty;
+                for (int i = 0; i < size; i++) resizeVec = resizeVec.Add(i);
+            });
 
 
 
@@ -75,7 +81,10 @@ namespace ImmutableCollections.Vectors
                 for (int i = 0; i < size; i++) fixedVec = fixedVec.Set((i * 234) % size, -i);
             });
 
-
+            Benchmark.Time("ResizeVector", () =>
+            {
+                for (int i = 0; i < size; i++) resizeVec = resizeVec.Set((i * 234) % size, -i);
+            });
 
 
 
@@ -86,7 +95,7 @@ namespace ImmutableCollections.Vectors
             Benchmark.Time("Collections.ImmutableList", () =>
             {
                 for (int k = 0; k < 10; k++)
-                    for (int i = 0; i < size; i++) x = msVec[(i*234)%size];
+                    for (int i = 0; i < size; i++) x = msVec[(i * 234) % size];
             });
 
             Benchmark.Time("Fvec", () =>
@@ -107,8 +116,11 @@ namespace ImmutableCollections.Vectors
                     for (int i = 0; i < size; i++) x = fixedVec.Lookup((i * 234) % size);
             });
 
-
-
+            Benchmark.Time("ResizeVector", () =>
+            {
+                for (int k = 0; k < 10; k++)
+                    for (int i = 0; i < size; i++) x = resizeVec.Lookup((i * 234) % size);
+            });
 
 
 
@@ -139,6 +151,11 @@ namespace ImmutableCollections.Vectors
                 for (int i = 0; i < size; i++) fixedVec = fixedVec.Add(i);
             });
 
+            resizeVec = ResizeVector<int>.Empty;
+            Benchmark.Memory("ResizeVector", () =>
+            {
+                for (int i = 0; i < size; i++) resizeVec = resizeVec.Add(i);
+            });
 
 
 
