@@ -40,7 +40,7 @@ namespace ImmutableCollections.Vectors
                 children[0].Init(x);
             }
 
-            public bool Add(T x)
+            public bool Add(T x) 
             {
                 var n = children.Length;
                 var last = children[n - 1];

@@ -48,6 +48,12 @@ namespace ImmutableCollections.SortedMaps
                 for (int i = 0; i < size; i++) btree = btree.Set(i, i);
             });
 
+            Benchmark.Time("BTree (mutate)", () =>
+            {
+                imsorteddict = ImmutableSortedDictionary<int, int>.Empty;
+                for (int i = 0; i < size; i++) btree = btree.MutateSet(i, i);
+            });
+
             Console.WriteLine("=========================== Memory ===========================");
 
             btree = BTree<int, int>.Empty;
@@ -121,7 +127,10 @@ namespace ImmutableCollections.SortedMaps
                 for (int i = 0; i < size; i++) btree = btree.Set((i * 234) % size, i);
             });
 
-
+            Benchmark.Time("BTree (mutate)", () =>
+            {
+                for (int i = 0; i < size; i++) btree = btree.MutateSet((i * 234) % size, i);
+            });
         }
     }
 }

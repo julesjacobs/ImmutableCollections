@@ -74,6 +74,7 @@
     <Compile Include="Queues\Benchmarks.cs" />
     <Compile Include="SortedMaps\Benchmarks.cs" />
     <Compile Include="SortedMaps\BTree.cs" />
+    <Compile Include="HashMaps\HAMT.cs" />
     <Compile Include="Stacks\Benchmarks.cs" />
     <Compile Include="Stacks\BufferedStack.cs" />
     <Compile Include="Stacks\LinkedListStack.cs" />
@@ -91,9 +92,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="HashMaps\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

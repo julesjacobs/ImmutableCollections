@@ -12,8 +12,12 @@ namespace ImmutableCollections.SortedMaps
 		{
 			bool TryGetValue(K key, out V value);
 			V GetMin();
+
 			bool Set(K key, V value, out K splitKey, out Self splitNode);
 			void SetMin(V value);
+
+            bool MutateSet(K key, V value, out K splitKey, out Self splitNode);
+            void MutateSetMin(V value);
 		}
 
 		struct Node<C> : ITree<Node<C>> where C : struct, ITree<C>
@@ -99,7 +103,54 @@ namespace ImmutableCollections.SortedMaps
 			{
 				children = CopyArray (children);
 				children[0].SetMin (val);
-			}			
+			}
+
+            public bool MutateSet(K key, V val, out K splitKey, out Node<C> splitNode)
+            {
+                int cmp = 0;
+                int i;
+                for (i = 0; i < keys.Length; i++)
+                { // should try binary search
+                    cmp = key.CompareTo(keys[i]);
+                    if (cmp <= 0) break; // key <= keys[i]
+                }
+                if (cmp == 0)
+                {
+                    children[i + 1].MutateSetMin(val);
+                }
+                else
+                {
+                    K childSplitKey;
+                    C childSplitNode;
+
+                    if (children[i].MutateSet(key, val, out childSplitKey, out childSplitNode))
+                    {
+                        keys = ArrayInsert(keys, i, childSplitKey);
+                        children = ArrayInsert(children, i + 1, childSplitNode);
+                        if (keys.Length > MaxSize)
+                        {
+                            // inefficient? this copies arrays that were just copied
+                            splitKey = keys[MinSize];
+                            var leftKeys = SubArray(keys, 0, MinSize);
+                            var rightKeys = SubArray(keys, MinSize + 1, MinSize);
+                            var leftChildren = SubArray(children, 0, MinSize + 1);
+                            var rightChildren = SubArray(children, MinSize + 1, MinSize + 1);
+                            keys = leftKeys;
+                            children = leftChildren;
+                            splitNode = new Node<C> { keys = rightKeys, children = rightChildren };
+                            return true;
+                        }
+                    }
+                }
+                splitKey = default(K);
+                splitNode = default(Node<C>);
+                return false;
+            }
+
+            public void MutateSetMin(V val)
+            {
+                children[0].MutateSetMin(val);
+            }
 
 			static T[] ArrayInsert<T>(T[] xs, int i, T x)
 			{
@@ -142,12 +193,23 @@ namespace ImmutableCollections.SortedMaps
 			}
 
 			public void SetMin(V val) { value = val; }
+
+            public bool MutateSet(K key, V val, out K splitKey, out Leaf splitNode)
+            {
+                splitKey = key;
+                splitNode = new Leaf() { value = val };
+                return true;
+            }
+
+            public void MutateSetMin(V val) { value = val; }
 		}
 
 		public interface Tree
 		{
 			bool TryGetValue(K key, out V value);
 			Tree Set(K key, V value);
+
+            Tree MutateSet(K key, V value);
 		}
 
 		class EmptyTree : Tree
@@ -162,6 +224,11 @@ namespace ImmutableCollections.SortedMaps
 			{
 				return new Tree<Leaf> (){ min = key, self = new Leaf (){ value = value } };
 			}
+
+            public Tree MutateSet(K key, V value)
+            {
+                return new Tree<Leaf>() { min = key, self = new Leaf() { value = value } };
+            }
 		}
 
 		class Tree<N> : Tree where N : struct, ITree<N>
@@ -212,6 +279,37 @@ namespace ImmutableCollections.SortedMaps
 				}
 				return new Tree<N>{ min = newmin, self = newself };
 			}
+
+            public Tree MutateSet(K key, V value)
+            {
+                var cmp = key.CompareTo(min);
+                if (cmp == 0)
+                {
+                    self.MutateSetMin(value);
+                }
+                if (cmp < 0)
+                {
+                    var oldmin = min;
+                    var oldminval = self.GetMin();
+                    min = key;
+                    self.MutateSetMin(value);
+                    key = oldmin;
+                    value = oldminval;
+                }
+                // now insert (key, val)
+                K splitKey;
+                N splitNode;
+                if (self.MutateSet(key, value, out splitKey, out splitNode))
+                {
+                    // have to upgrade this tree with an extra level
+                    var children = new N[2];
+                    children[0] = self;
+                    children[1] = splitNode;
+                    var keys = new K[] { splitKey };
+                    return new Tree<Node<N>>() { min = min, self = new Node<N>() { keys = keys, children = children } };
+                }
+                return this;
+            }
 		}
 
 		public static Tree Empty = new EmptyTree();
