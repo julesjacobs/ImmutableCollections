@@ -48,12 +48,13 @@ namespace ImmutableCollections
 
             Console.WriteLine("=== VECTORS ===");
             Vectors.Benchmarks.Run();
-            */
-
+           
             Console.WriteLine("=== SORTEDMAPS ===");
             SortedMaps.Benchmarks.Run();
+             */
 
-            
+            HashMaps.Test.Run();
+
             /*
             var v = Vectors.ResizeVector<int>.Empty;
 
