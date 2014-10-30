@@ -1,11 +1,11 @@
 using System;
 using System.Diagnostics;
 
-namespace BTree
+namespace ImmutableCollections.SortedMaps
 {
 	struct BTree<K,V> where K : IComparable<K>
 	{
-		const int MinSize = 16;
+		const int MinSize = 8;
 		const int MaxSize = MinSize*2;
 
 		interface ITree<Self> where Self : struct, ITree<Self>
@@ -21,6 +21,7 @@ namespace BTree
 			public K[] keys;
 			public C[] children; // children.Length == keys.Length + 1
 
+            // i manually inlined this further down because it's much faster that way
 			bool Search(K key, out int i)
 			{
 				int cmp = 0;
@@ -31,10 +32,17 @@ namespace BTree
 				return cmp == 0;
 			}
 
+            // inlined search
 			public bool TryGetValue(K key, out V val)
 			{
-				int i;
-				if (Search(key, out i)) {
+                int cmp = 0;
+                int i;
+                for (i = 0; i < keys.Length; i++)
+                { // should try binary search
+                    cmp = key.CompareTo(keys[i]);
+                    if (cmp <= 0) break; // key <= keys[i]
+                }
+				if (cmp == 0) {
 					val = children [i + 1].GetMin ();
 					return true;
 				}
@@ -44,9 +52,15 @@ namespace BTree
 			public V GetMin() { return children[0].GetMin(); }
 
 			public bool Set(K key, V val, out K splitKey, out Node<C> splitNode)
-			{	
-				int i;
-				if (Search(key, out i)) {
+			{
+                int cmp = 0;
+                int i;
+                for (i = 0; i < keys.Length; i++)
+                { // should try binary search
+                    cmp = key.CompareTo(keys[i]);
+                    if (cmp <= 0) break; // key <= keys[i]
+                }
+				if (cmp == 0) {
 					children = CopyArray (children);
 					children [i + 1].SetMin (val);
 				} else {
@@ -201,28 +215,5 @@ namespace BTree
 		}
 
 		public static Tree Empty = new EmptyTree();
-	}
-
-	class MainClass
-	{
-		public static void Main (string[] args)
-		{
-			int v;
-			var m = BTree<int, int>.Empty;
-
-			for (int i = 0; i < 10000; i++)
-				m = m.Set (i, i);
-				
-			m.TryGetValue (9876, out v);
-			Console.WriteLine (v);
-
-			for (int i = 0; i < 10000; i++)
-				m = m.Set (i, -i);
-
-			m.TryGetValue (9876, out v);
-			Console.WriteLine (v);
-
-			Console.WriteLine ("Hello World!");
-		}
 	}
 }

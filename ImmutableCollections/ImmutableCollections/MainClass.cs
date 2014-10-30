@@ -14,6 +14,7 @@ namespace ImmutableCollections
         {
             //if (name == "Collections.ImmutableList") return;
             //if (name == "FixedVector") return;
+            //if (name == "Collections.ImmutableDictionary") return;
             f(); // warmup: let the CLR genererate code for generics, get caches hot, etc.
             GC.GetTotalMemory(true);
             var watch = Stopwatch.StartNew();
@@ -38,9 +39,19 @@ namespace ImmutableCollections
     {
         static void Main()
         {
-            //Stacks.Benchmarks.Run();
-            //Queues.Benchmarks.Run();
+            /*
+            Console.WriteLine("=== STACKS ===");
+            Stacks.Benchmarks.Run();
+
+            Console.WriteLine("=== QUEUES ===");
+            Queues.Benchmarks.Run();
+
+            Console.WriteLine("=== VECTORS ===");
             Vectors.Benchmarks.Run();
+            */
+
+            Console.WriteLine("=== SORTEDMAPS ===");
+            SortedMaps.Benchmarks.Run();
 
             
             /*
