@@ -6,147 +6,175 @@ using System.Threading.Tasks;
 
 namespace ImmutableCollections.Vectors
 {
-    public struct MergeVector<T>
+    struct MergeVector<T>
     {
-        const int MASK = 0x1F;
-
-        interface INode
+        interface IVec
         {
-            int Shift { get; }
             T Lookup(uint i);
             void Set(uint i, T x);
         }
 
-        struct Node<Child> : INode where Child : struct, INode
+        struct Node<C> : IVec where C : struct, IVec
         {
-            static int shift = (new Child()).Shift + 5;
-
-            public Child[] children;
+            public C[] children;
 
             public T Lookup(uint i)
             {
-                return children[(i >> shift) & MASK].Lookup(i);
+                return children[i >> 27].Lookup(i << 5);
             }
 
             public void Set(uint i, T x)
             {
-                var tmp = new Child[children.Length];
+                var tmp = new C[children.Length];
                 Array.Copy(children, 0, tmp, 0, children.Length);
                 children = tmp;
-                children[(i >> shift) & MASK].Set(i, x);
+                children[i >> 27].Set(i << 5, x);
             }
 
-            // this method adds the full Child `c` to the children and returns true if this node is full after adding
-            public bool AddAndIsFull(Child c)
-            {
-                if (children == null) children = new[] { c };
-                else
-                {
-                    var tmp = new Child[children.Length + 1];
-                    Array.Copy(children, 0, tmp, 0, children.Length);
-                    tmp[children.Length] = c;
-                    children = tmp;
-                }
-                return children.Length == 32;
-            }
-
-            public int Shift { get { return shift; } }
         }
 
-        struct Leaf : INode
+        struct Leaf : IVec
         {
             public T item;
+
             public T Lookup(uint i) { return item; }
             public void Set(uint i, T x) { item = x; }
-            public int Shift { get { return -5; } }
         }
 
-        public class Vec
+        interface IRoot<N> where N : struct, IVec
         {
-            uint Length;
-            // logically the elements in this vector are the concatenation of the elements of level6 + level5 + ... + level0
-            // this is done to support Add in amortized O(1) it also happens to work out nicely for a vec where not all levels are in use
-            // the upper levels are simply null in that case; there is no virtual dispatch at all.
-            Node<Node<Node<Node<Node<Node<Node<Leaf>>>>>>> level6;
-            Node<Node<Node<Node<Node<Node<Leaf>>>>>> level5;
-            Node<Node<Node<Node<Node<Leaf>>>>> level4;
-            Node<Node<Node<Node<Leaf>>>> level3;
-            Node<Node<Node<Leaf>>> level2;
-            Node<Node<Leaf>> level1;
-            Node<Leaf> level0;
+            T Lookup(uint i);
+            bool Add(T x, out N full); // returns whether the node is full, and if so, returns the full node
+            void Set(uint i, T x);
+            void Init();
 
-            public Vec() { }
+            int Shift { get; }
+        }
 
-            public Vec(Vec v)
+        struct Root<N,R> : IRoot<Node<N>>
+            where N : struct, IVec 
+            where R : struct, IRoot<N>
+        {
+            public N[] nodes;
+            public R next;
+
+            public T Lookup(uint i)
             {
-                Length = v.Length;
-                level0 = v.level0;
-                level1 = v.level1;
-                level2 = v.level2;
-                level3 = v.level3;
-                level4 = v.level4;
-                level5 = v.level5;
-                level6 = v.level6;
+                uint j = i >> 27;
+                if (j < nodes.Length) return nodes[j].Lookup(i << 5);
+                else if (j == nodes.Length) return next.Lookup(i << 5);
+                else throw new IndexOutOfRangeException();
             }
 
-            public T this[int index]
+            public bool Add(T x, out Node<N> newfull)
             {
-                get { return Lookup(index); }
+                
+                N full;
+                if(next.Add(x, out full))
+                {
+                    nodes = nodes.Insert(nodes.Length, full);
+                    if(nodes.Length == 32)
+                    {
+                        newfull = new Node<N> { children = nodes };
+                        nodes = new N[0];
+                        return true;
+                    }
+                }
+                newfull = default(Node<N>);
+                return false;
             }
 
-            public T Lookup(int index)
+            public void Set(uint i, T x)
             {
-                var i = unchecked((uint)index);
-                if (i >= Length) throw new IndexOutOfRangeException();
-                var same = i ^ Length;
-                if ((same >> 5) == 0) return level0.Lookup(i);
-                if ((same >> 10) == 0) return level1.Lookup(i);
-                if ((same >> 15) == 0) return level2.Lookup(i);
-                if ((same >> 20) == 0) return level3.Lookup(i);
-                if ((same >> 25) == 0) return level4.Lookup(i);
-                if ((same >> 30) == 0) return level5.Lookup(i);
-                return level6.Lookup(i);
+                uint j = i >> 27;
+                if (j < nodes.Length) nodes[j].Set(i << 5, x);
+                else if (j == nodes.Length) next.Set(i << 5, x);
+                else throw new IndexOutOfRangeException();
             }
 
-            public Vec Set(int index, T x)
+            public void Init()
             {
-                var i = unchecked((uint)index);
-                if (i > Length) throw new IndexOutOfRangeException();
-                if (i == Length) return Add(x);
-                var tmp = new Vec(this);
-                var same = i ^ Length;
-                if ((same >> 5) == 0) tmp.level0.Set(i, x);
-                else if ((same >> 10) == 0) tmp.level1.Set(i, x);
-                else if ((same >> 15) == 0) tmp.level2.Set(i, x);
-                else if ((same >> 20) == 0) tmp.level3.Set(i, x);
-                else if ((same >> 25) == 0) tmp.level4.Set(i, x);
-                else if ((same >> 30) == 0) tmp.level5.Set(i, x);
-                else tmp.level6.Set(i, x);
-                return tmp;
+                nodes = new N[0];
+                next.Init();
             }
 
-            static bool AddAndClear<Q>(ref Node<Node<Q>> parent, ref Node<Q> child) where Q : struct, INode
+            public int Shift { get { return (new R()).Shift - 5; } }
+        }
+
+        struct End : IRoot<Leaf>
+        {
+            public T Lookup(uint i) { throw new IndexOutOfRangeException(); }
+            public bool Add(T x, out Leaf newfull)
             {
-                var ret = parent.AddAndIsFull(child);
-                child.children = null;
-                return ret;
+                newfull = new Leaf { item = x };
+                return true;
+            }
+            public void Set(uint i, T x) { throw new IndexOutOfRangeException(); }
+            public void Init() { }
+            public int Shift { get { return 32; } }
+        }
+
+        public interface Vector
+        {
+            T Lookup(int i);
+            Vector Add(T x);
+            Vector Set(int i, T x);
+        }
+
+        class Vector<N, R> : Vector
+            where R : struct, IRoot<N>
+            where N : struct, IVec
+        {
+            public R self;
+
+            static readonly int shift = (new R()).Shift;
+
+            public T Lookup(int i) { return self.Lookup(unchecked((uint)i) << shift); }
+
+            public Vector Add(T x)
+            {
+                var self2 = self;
+                N newfull;
+                if (self2.Add(x, out newfull)) // node is full
+                {
+                    var ret = new Vector<Node<N>, Root<N, R>>
+                    {
+                        self = new Root<N, R>()
+                        {
+                            nodes = new N[] { newfull },
+                            next = new R()
+                        }
+                    };
+                    ret.self.next.Init();
+                    return ret;
+                }
+                return new Vector<N, R>() { self = self2 };
             }
 
-            public Vec Add(T x)
+            public Vector Set(int i, T x)
             {
-                var tmp = new Vec(this);
-                tmp.Length += 1;
-                if (tmp.level0.AddAndIsFull(new Leaf { item = x }))
-                    if (AddAndClear(ref tmp.level1, ref tmp.level0))
-                        if (AddAndClear(ref tmp.level2, ref tmp.level1))
-                            if (AddAndClear(ref tmp.level3, ref tmp.level2))
-                                if (AddAndClear(ref tmp.level4, ref tmp.level3))
-                                    if (AddAndClear(ref tmp.level5, ref tmp.level4))
-                                        AddAndClear(ref tmp.level6, ref tmp.level5);
-                return tmp;
+                var self2 = self;
+                self2.Set(unchecked((uint)i) << shift, x);
+                return new Vector<N, R>() { self = self2 };
             }
         }
 
-        public static Vec Empty = new Vec();
+        class EmptyVector : Vector
+        {
+            public T Lookup(int i) { throw new IndexOutOfRangeException(); }
+
+            public Vector Add(T x)
+            {
+                var v = new Vector<Node<Leaf>, Root<Leaf,End>>();
+                Node<Leaf> dummy;
+                v.self.Init();
+                v.self.Add(x, out dummy);
+                return v;
+            }
+
+            public Vector Set(int i, T x) { throw new IndexOutOfRangeException(); }
+        }
+
+        public static Vector Empty = new EmptyVector();
     }
 }

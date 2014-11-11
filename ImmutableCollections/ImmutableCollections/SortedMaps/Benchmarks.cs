@@ -17,6 +17,7 @@ namespace ImmutableCollections.SortedMaps
             var imsorteddict = ImmutableSortedDictionary<int, int>.Empty;
             var imdict = ImmutableDictionary<int, int>.Empty;
             var mutsorteddict = new SortedDictionary<int, int>();
+            var hamt = HashMaps.HAMT<int, int>.Empty;
             int v;
 
 
@@ -54,12 +55,19 @@ namespace ImmutableCollections.SortedMaps
                 for (int i = 0; i < size; i++) btree = btree.MutateSet(i, i);
             });
 
+            Benchmark.Time("HAMT", () =>
+            {
+                hamt = HashMaps.HAMT<int, int>.Empty;
+                for (int i = 0; i < size; i++) hamt = hamt.Set(i, i);
+            });
+
             Console.WriteLine("=========================== Memory ===========================");
 
             btree = BTree<int, int>.Empty;
             imsorteddict = ImmutableSortedDictionary<int, int>.Empty;
             imdict = ImmutableDictionary<int, int>.Empty;
             mutsorteddict = new SortedDictionary<int, int>();
+            hamt = HashMaps.HAMT<int, int>.Empty;
 
             Benchmark.Memory("Collections.ImmutableSortedDictionary", () =>
             {
@@ -79,6 +87,11 @@ namespace ImmutableCollections.SortedMaps
             Benchmark.Memory("BTree", () =>
             {
                 for (int i = 0; i < size; i++) btree = btree.Set(i, i);
+            });
+
+            Benchmark.Memory("HAMT", () =>
+            {
+                for (int i = 0; i < size; i++) hamt = hamt.Set(i, i);
             });
 
 
@@ -104,6 +117,10 @@ namespace ImmutableCollections.SortedMaps
                 for (int i = 0; i < size; i++) btree.TryGetValue(i, out v);
             });
 
+            Benchmark.Time("HAMT", () =>
+            {
+                for (int i = 0; i < size; i++) hamt.TryGetValue(i, out v);
+            });
 
             Console.WriteLine("=========================== Setting ===========================");
 
@@ -130,6 +147,11 @@ namespace ImmutableCollections.SortedMaps
             Benchmark.Time("BTree (mutate)", () =>
             {
                 for (int i = 0; i < size; i++) btree = btree.MutateSet((i * 234) % size, i);
+            });
+
+            Benchmark.Time("HAMT", () =>
+            {
+                for (int i = 0; i < size; i++) hamt = hamt.Set((i * 234) % size, i);
             });
         }
     }

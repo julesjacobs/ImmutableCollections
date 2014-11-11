@@ -15,6 +15,7 @@ namespace ImmutableCollections
             //if (name == "Collections.ImmutableList") return;
             //if (name == "FixedVector") return;
             //if (name == "Collections.ImmutableDictionary") return;
+            if (name != "MergeVector") return;
             f(); // warmup: let the CLR genererate code for generics, get caches hot, etc.
             GC.GetTotalMemory(true);
             var watch = Stopwatch.StartNew();
@@ -39,21 +40,44 @@ namespace ImmutableCollections
     {
         static void Main()
         {
+
+
+
+            //Console.WriteLine("start"); ;
+
+            //for (int j = 0; j < 10; j++)
+            //{
+            //    var hamt = HashMaps.HAMT<int, int>.Empty;
+            //    for (int i = 0; i < 1000000; i++) hamt = hamt.Set(i, i);
+
+            //    int v = 0;
+            //    for (int i = 0; i < 1000000; i++) hamt.TryGetValue(i, out v);
+
+            //    Console.WriteLine(v);
+            //}
+
+            //Console.WriteLine("done");
+
+            //Console.Write(true);
             /*
             Console.WriteLine("=== STACKS ===");
             Stacks.Benchmarks.Run();
 
             Console.WriteLine("=== QUEUES ===");
             Queues.Benchmarks.Run();
-
+            */
             Console.WriteLine("=== VECTORS ===");
             Vectors.Benchmarks.Run();
+            
            
-            Console.WriteLine("=== SORTEDMAPS ===");
-            SortedMaps.Benchmarks.Run();
-             */
+            //Console.WriteLine("=== SORTEDMAPS ===");
+            //SortedMaps.Benchmarks.Run();
+            //Console.Read();
+            
 
-            HashMaps.Test.Run();
+
+
+            //HashMaps.Test.Run();
 
             /*
             var v = Vectors.ResizeVector<int>.Empty;

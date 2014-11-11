@@ -8,11 +8,15 @@ namespace ImmutableCollections.HashMaps
 {
     struct HAMT<K, V>
     {
+        // TODO:
+        //   optimize copying
+        //   remove depth parameter
+        //   try inlining bit calculations
         interface IHashMap
         {
             bool TryGetValue(K key, int hash, int depth, out V value);
             void Update(K key, int hash, int depth, V value);
-            void Init();
+            void Init2(K key1, V val1, int hash1, K key2, V val2, int hash2, int depth);
         }
 
         struct TrieNode<Child> : IHashMap where Child : IHashMap, new()
@@ -23,28 +27,16 @@ namespace ImmutableCollections.HashMaps
             Child[] children;
             KeyValuePair<K, V>[] entries;
 
-            static Child[] emptychildren = new Child[0];
-            static KeyValuePair<K, V>[] emptyentries = new KeyValuePair<K, V>[0];
-
-            public void Init()
-            {
-                childrenbitmap = 0;
-                entriesbitmap = 0;
-                children = emptychildren;
-                entries = emptyentries;
-            }
-
             public bool TryGetValue(K key, int hash, int depth, out V value)
             {
                 int bit = ComputeBit(hash, depth);
-                int i;
-                if (TryGetIndex(bit, childrenbitmap, out i))
+                if ((bit & childrenbitmap) != 0)
                 {
-                    return children[i].TryGetValue(key, hash, depth + 1, out value);
+                    return children[ComputeIndex(bit, childrenbitmap)].TryGetValue(key, hash, depth + 5, out value);
                 }
-                else if (TryGetIndex(bit, entriesbitmap, out i))
+                else if ((bit & entriesbitmap) != 0)
                 {
-                    var kv = entries[i];
+                    var kv = entries[ComputeIndex(bit, entriesbitmap)];
                     if (eq(kv.Key, key))
                     {
                         value = kv.Value;
@@ -58,71 +50,65 @@ namespace ImmutableCollections.HashMaps
             public void Update(K key, int hash, int depth, V value)
             {
                 int bit = ComputeBit(hash, depth);
-                int i;
-                if (TryGetIndex(bit, childrenbitmap, out i))
+                if ((bit & childrenbitmap) != 0)
                 {
-                    var newchildren = (Child[])children.Clone();
-                    newchildren[i].Update(key, hash, depth + 1, value);
-                    children = newchildren;
+                    var tmp = new Child[children.Length];
+                    Array.Copy(children, tmp, children.Length);
+                    children = tmp;
+                    children[ComputeIndex(bit, childrenbitmap)].Update(key, hash, depth + 5, value);
                 }
-                else if (TryGetIndex(bit, entriesbitmap, out i))
+                else if ((bit & entriesbitmap) != 0)
                 {
-                    var newchildren = new Child[children.Length + 1];
-                    var newentries = new KeyValuePair<K, V>[entries.Length - 1];
-                    var newchild = new Child();
-                    newchild.Init();
-                    newchild.Update(key, hash, depth + 1, value);
-                    newchild.Update(entries[i].Key, entries[i].Key.GetHashCode(), depth + 1, entries[i].Value);
-
-                    var j = ComputeIndex(bit, childrenbitmap);
-                    Array.ConstrainedCopy(children, 0, newchildren, 0, j);
-                    newchildren[j] = newchild;
-                    Array.ConstrainedCopy(children, j, newchildren, j + 1, children.Length - j);
-
-                    Array.ConstrainedCopy(entries, 0, newentries, 0, i);
-                    Array.ConstrainedCopy(entries, i + 1, newentries, i, entries.Length - i - 1);
-
-                    childrenbitmap = childrenbitmap | bit;
-                    entriesbitmap = entriesbitmap & ~bit;
-                    children = newchildren;
-                    entries = newentries;
+                    int i = ComputeIndex(bit, entriesbitmap);
+                    if (eq(entries[i].Key,key)) entries[i] = new KeyValuePair<K,V>(key,value);
+                    else
+                    {
+                        int j = 0;
+                        if (children == null) children = new Child[1];
+                        else
+                        {
+                            j = ComputeIndex(bit, childrenbitmap);
+                            children = children.Insert(j, new Child());
+                        }
+                        children[j].Init2(key, value, hash, entries[i].Key, entries[i].Value, entries[i].Key.GetHashCode(), depth + 5);
+                        entries = entries.Remove(i);
+                        childrenbitmap = childrenbitmap | bit;
+                        entriesbitmap = entriesbitmap & ~bit;
+                    }
                 }
                 else
                 {
-                    i = ComputeIndex(bit, entriesbitmap);
-
-                    var newentries = new KeyValuePair<K, V>[entries.Length + 1];
-                    Array.ConstrainedCopy(entries, 0, newentries, 0, i);
-                    newentries[i] = new KeyValuePair<K, V>(key, value);
-                    Array.ConstrainedCopy(entries, i, newentries, i + 1, entries.Length - i);
-
+                    if (entries == null) entries = new[] { new KeyValuePair<K, V>(key, value) };
+                    else entries = entries.Insert(ComputeIndex(bit, entriesbitmap), new KeyValuePair<K, V>(key, value));
                     entriesbitmap = entriesbitmap | bit;
-                    entries = newentries;
+                }
+            }
+
+            public void Init2(K key1, V val1, int hash1, K key2, V val2, int hash2, int depth)
+            {
+                var bit1 = ComputeBit(hash1, depth);
+                var bit2 = ComputeBit(hash2, depth);
+                if(bit1 == bit2)
+                {
+                    childrenbitmap = bit1;
+                    children = new Child[1];
+                    children[0].Init2(key1, val2, hash1, key2, val2, hash2, depth + 5);
+                }else
+                {
+                    entriesbitmap = bit1 | bit2;
+                    if (bit1 < bit2) entries = new[] { new KeyValuePair<K, V>(key1, val1), new KeyValuePair<K, V>(key2, val2) };
+                    else entries = new[] { new KeyValuePair<K, V>(key2, val2), new KeyValuePair<K, V>(key1, val1) };
                 }
             }
 
             static int ComputeBit(int hash, int depth)
             {
-                return 1 << ((hash >> (5 * depth)) & 0x01F);
+                return 1 << ((hash >> depth) & 0x01F);
             }
 
             static int ComputeIndex(int bit, int bitmap)
             {
                 return BitCount(bitmap & (bit - 1));
-            }
-
-            static bool TryGetIndex(int bit, int bitmap, out int i)
-            {
-                if ((bitmap & bit) != 0)
-                {
-                    i = ComputeIndex(bit, bitmap);
-                    return true;
-                }
-                else
-                {
-                    i = default(int);
-                    return false;
-                }
             }
 
             // blatantly stolen
@@ -143,9 +129,9 @@ namespace ImmutableCollections.HashMaps
 
             static KeyValuePair<K, V>[] emptyentries = new KeyValuePair<K, V>[0];
 
-            public void Init()
+            public void Init2(K key1, V val1, int hash1, K key2, V val2, int hash2, int depth)
             {
-                entries = emptyentries;
+                entries = new[] { new KeyValuePair<K, V>(key1, val1), new KeyValuePair<K, V>(key2, val2) };
             }
 
             public bool TryGetValue(K key, int hash, int depth, out V value)
@@ -187,19 +173,12 @@ namespace ImmutableCollections.HashMaps
         {
             TrieNode<TrieNode<TrieNode<TrieNode<TrieNode<TrieNode<TrieNode<Bucket>>>>>>> trie;
 
-            public static TrieMap Empty()
-            {
-                var hamt = new TrieMap();
-                hamt.trie.Init();
-                return hamt;
-            }
-
             public bool TryGetValue(K key, out V value)
             {
                 return trie.TryGetValue(key, key.GetHashCode(), 0, out value);
             }
 
-            public TrieMap Update(K key, V value)
+            public TrieMap Set(K key, V value)
             {
                 var self = this;
                 self.trie.Update(key, key.GetHashCode(), 0, value);
@@ -207,7 +186,7 @@ namespace ImmutableCollections.HashMaps
             }
         }
 
-        public static TrieMap Empty = TrieMap.Empty();
+        public static TrieMap Empty = new TrieMap();
     }
 
     public struct Test
@@ -216,19 +195,24 @@ namespace ImmutableCollections.HashMaps
         {
             var h = HAMT<int, int>.Empty;
 
-            for (int i = 0; i < 1000; i++) h = h.Update(i, i);
+            for (int i = 0; i < 1000000; i++) h = h.Set(i, i);
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 500000; i++)
+            {
+                h = h.Set(i, -i);
+            }
+
+            for (int i = 0; i < 1000000; i++)
             {
                 int v;
                 h.TryGetValue(i, out v);
-                if (v != i) Console.WriteLine("Error: ", i, " returned ", v);
+                if ((i < 500000 && v != -i) || (i >= 500000 && v != i)) Console.WriteLine("Error: {0} returned {1}", i, v);
             }
 
-            for (int i = 1001; i < 2000; i++)
+            for (int i = 1000001; i < 2000000; i++)
             {
                 int v;
-                if (h.TryGetValue(i, out v)) Console.WriteLine("Error: ", i, " shouldn't be present");
+                if (h.TryGetValue(i, out v)) Console.WriteLine("Error: {0} shouldn't be present", i);
             }
 
             Console.WriteLine("End");

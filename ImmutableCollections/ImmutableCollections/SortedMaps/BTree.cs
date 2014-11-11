@@ -42,7 +42,7 @@ namespace ImmutableCollections.SortedMaps
                 int cmp = 0;
                 int i;
                 for (i = 0; i < keys.Length; i++)
-                { // should try binary search
+                {
                     cmp = key.CompareTo(keys[i]);
                     if (cmp <= 0) break; // key <= keys[i]
                 }
@@ -60,12 +60,12 @@ namespace ImmutableCollections.SortedMaps
                 int cmp = 0;
                 int i;
                 for (i = 0; i < keys.Length; i++)
-                { // should try binary search
+                {
                     cmp = key.CompareTo(keys[i]);
                     if (cmp <= 0) break; // key <= keys[i]
                 }
 				if (cmp == 0) {
-					children = CopyArray (children);
+                    children = children.Copy();
 					children [i + 1].SetMin (val);
 				} else {
 					var c = children [i];
@@ -73,16 +73,16 @@ namespace ImmutableCollections.SortedMaps
 					C childSplitNode;
 
 					if (c.Set (key, val, out childSplitKey, out childSplitNode)) {
-						keys = ArrayInsert (keys, i, childSplitKey);
-						children = ArrayInsert (children, i + 1, childSplitNode);
+						keys = keys.Insert(i, childSplitKey);
+						children = children.Insert(i + 1, childSplitNode);
 						children [i] = c;
 						if (keys.Length > MaxSize) {
 							// inefficient? this copies arrays that were just copied
 							splitKey = keys [MinSize];
-							var leftKeys = SubArray (keys, 0, MinSize);
-							var rightKeys = SubArray (keys, MinSize + 1, MinSize);
-							var leftChildren = SubArray (children, 0, MinSize + 1);
-							var rightChildren = SubArray (children, MinSize + 1, MinSize + 1);
+                            var leftKeys = keys.Slice(0, MinSize);
+							var rightKeys = keys.Slice(MinSize + 1, MinSize);
+							var leftChildren = children.Slice(0, MinSize + 1);
+                            var rightChildren = children.Slice(MinSize + 1, MinSize + 1);
 							keys = leftKeys;
 							children = leftChildren;
 							splitNode = new Node<C>{ keys = rightKeys, children = rightChildren };
@@ -90,7 +90,7 @@ namespace ImmutableCollections.SortedMaps
 
 						}
 					} else {
-						children = CopyArray (children);
+                        children = children.Copy();
 						children [i] = c;
 					}
 				}
@@ -101,7 +101,7 @@ namespace ImmutableCollections.SortedMaps
 
 			public void SetMin(V val)
 			{
-				children = CopyArray (children);
+                children = children.Copy();
 				children[0].SetMin (val);
 			}
 
@@ -125,16 +125,16 @@ namespace ImmutableCollections.SortedMaps
 
                     if (children[i].MutateSet(key, val, out childSplitKey, out childSplitNode))
                     {
-                        keys = ArrayInsert(keys, i, childSplitKey);
-                        children = ArrayInsert(children, i + 1, childSplitNode);
+                        keys = keys.Insert(i, childSplitKey);
+                        children = children.Insert(i + 1, childSplitNode);
                         if (keys.Length > MaxSize)
                         {
                             // inefficient? this copies arrays that were just copied
                             splitKey = keys[MinSize];
-                            var leftKeys = SubArray(keys, 0, MinSize);
-                            var rightKeys = SubArray(keys, MinSize + 1, MinSize);
-                            var leftChildren = SubArray(children, 0, MinSize + 1);
-                            var rightChildren = SubArray(children, MinSize + 1, MinSize + 1);
+                            var leftKeys = keys.Slice(0, MinSize);
+                            var rightKeys = keys.Slice(MinSize + 1, MinSize);
+                            var leftChildren = children.Slice(0, MinSize + 1);
+                            var rightChildren = children.Slice(MinSize + 1, MinSize + 1);
                             keys = leftKeys;
                             children = leftChildren;
                             splitNode = new Node<C> { keys = rightKeys, children = rightChildren };
@@ -151,26 +151,6 @@ namespace ImmutableCollections.SortedMaps
             {
                 children[0].MutateSetMin(val);
             }
-
-			static T[] ArrayInsert<T>(T[] xs, int i, T x)
-			{
-				var tmp = new T[xs.Length + 1];
-				Array.Copy (xs, 0, tmp, 0, i);
-				tmp [i] = x;
-				Array.Copy (xs, i, tmp, i + 1, xs.Length - i);
-				return tmp;
-			}
-
-			static T[] SubArray<T>(T[] xs, int i, int len)
-			{
-				var tmp = new T[len];
-				Array.Copy (xs, i, tmp, 0, len);
-				return tmp;
-			}
-
-			static T[] CopyArray<T>(T[] xs){
-				return SubArray (xs, 0, xs.Length);
-			}
 		}
 
 		struct Leaf : ITree<Leaf>

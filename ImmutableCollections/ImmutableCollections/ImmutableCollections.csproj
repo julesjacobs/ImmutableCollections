@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArrayUtils.cs" />
     <Compile Include="Queues\Benchmarks.cs" />
     <Compile Include="SortedMaps\Benchmarks.cs" />
     <Compile Include="SortedMaps\BTree.cs" />
@@ -85,8 +86,9 @@
     <Compile Include="Queues\StackArrayQueue.cs" />
     <Compile Include="Vectors\Benchmarks.cs" />
     <Compile Include="Vectors\FVec.cs" />
-    <Compile Include="Vectors\MergeVector.cs" />
+    <Compile Include="Vectors\FixedMergeVector.cs" />
     <Compile Include="Vectors\FixedVector.cs" />
+    <Compile Include="Vectors\MergeVector.cs" />
     <Compile Include="Vectors\ResizeVector.cs" />
   </ItemGroup>
   <ItemGroup>
