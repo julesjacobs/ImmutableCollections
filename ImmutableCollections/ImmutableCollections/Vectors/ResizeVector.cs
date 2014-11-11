@@ -8,6 +8,9 @@ namespace ImmutableCollections.Vectors
 {
     struct ResizeVector<T>
     {
+        static int BitsPerLevel = 5; // branching factor = 2^BitsPerLevel
+        static int MaxNodeSize = 1 << BitsPerLevel;
+
         interface IVec
         {
             T Lookup(uint i);
@@ -23,7 +26,7 @@ namespace ImmutableCollections.Vectors
 
             public T Lookup(uint i)
             {
-                return children[i >> 27].Lookup(i << 5);
+                return children[i >> (32 - BitsPerLevel)].Lookup(i << BitsPerLevel);
             }
 
             public void Set(uint i, T x)
@@ -31,7 +34,7 @@ namespace ImmutableCollections.Vectors
                 var tmp = new C[children.Length];
                 Array.Copy(children, 0, tmp, 0, children.Length);
                 children = tmp;
-                children[i >> 27].Set(i << 5, x);
+                children[i >> (32 - BitsPerLevel)].Set(i << BitsPerLevel, x);
             }
 
             public void Init(T x)
@@ -52,7 +55,7 @@ namespace ImmutableCollections.Vectors
                     children = tmp;
                     return true;
                 }
-                if (n == 32) return false; // can't go larger, add failed
+                if (n == MaxNodeSize) return false; // can't go larger, add failed
                 var tmp2 = new C[n + 1];
                 Array.Copy(children, 0, tmp2, 0, n);
                 tmp2[n].Init(x);
@@ -60,7 +63,7 @@ namespace ImmutableCollections.Vectors
                 return true;
             }
 
-            public int Shift { get { return (new C()).Shift - 5; } }
+            public int Shift { get { return (new C()).Shift - BitsPerLevel; } }
         }
 
         struct Leaf : IVec
