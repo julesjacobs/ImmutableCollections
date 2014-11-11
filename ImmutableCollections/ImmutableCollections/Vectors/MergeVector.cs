@@ -87,7 +87,7 @@ namespace ImmutableCollections.Vectors
             public void Set(uint i, T x)
             {
                 uint j = i >> 27;
-                if (j < nodes.Length) nodes[j].Set(i << 5, x);
+                if (j < nodes.Length) { nodes = nodes.Copy(); nodes[j].Set(i << 5, x); }
                 else if (j == nodes.Length) next.Set(i << 5, x);
                 else throw new IndexOutOfRangeException();
             }
